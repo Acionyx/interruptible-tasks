@@ -29,8 +29,8 @@ function* stepFunction(str) {
   console.log(5, str, new Date().getTime());
 }
 
-const f = makeInterruptible(stepFunction, { abortable: true, name: 'globalProcess' }, wiredAction);
-const fInner = makeInterruptible(stepFunctionInner, { abortable: true, name: 'innerProcess' }, wiredAction);
+const f = makeInterruptible(stepFunction, { interruptible: true, name: 'globalProcess' }, wiredAction);
+const fInner = makeInterruptible(stepFunctionInner, { interruptible: true, name: 'innerProcess' }, wiredAction);
 
 f("test1");
 setTimeout(() => f("test3").catch(console.error), 1500);

@@ -5,7 +5,7 @@ export const statuses = Object.freeze({
 
 export function makeInterruptible(
   generator,
-  params = { abortable: true, name: Symbol() },
+  params = { interruptible: true, name: Symbol() },
   connect = null
 ) {
   let globalNonce;
@@ -30,7 +30,7 @@ export function makeInterruptible(
   };
 
   return async function(...args) {
-    if (currentStatus === statuses.running && !params.abortable) {
+    if (currentStatus === statuses.running && !params.interruptible) {
       throw new Error("Function is being executed already");
     }
     setRunning();
@@ -59,7 +59,7 @@ export function makeInterruptible(
           throw e;
         }
       }
-      if (localNonce !== globalNonce && params.abortable) {
+      if (localNonce !== globalNonce && params.interruptible) {
         return; // a new call was made
       }
       // next loop, we give resumeValue back to the generator
