@@ -1,36 +1,38 @@
-import { makeInterruptible, statuses } from "./interruptible.mjs";
+import { createTask, taskStatuses } from "./interruptible.mjs";
 
 const wiredAction = (name, status) => {
-  console.log("saved in state", name, status === statuses.stopped ? 'stopped' : 'running');
+  console.log("saved in state", name, status === taskStatuses.stopped ? 'stopped' : 'running');
 };
 
 function* stepFunctionInner(str) {
-  console.log("00", str, new Date().getTime());
-  yield new Promise(resolve => setTimeout(resolve, 1000));
   console.log(11, str, new Date().getTime());
-
   yield new Promise(resolve => setTimeout(resolve, 1000));
+
+  console.log(22, str, new Date().getTime());
+  yield new Promise(resolve => setTimeout(resolve, 1000));
+
   console.log(33, str, new Date().getTime());
+  yield new Promise(resolve => setTimeout(resolve, 1000));
+
+  console.log(44, str, new Date().getTime());
+  yield new Promise(resolve => setTimeout(resolve, 1000));
+
+  console.log(55, str, new Date().getTime());
 }
 
 function* stepFunction(str) {
-  console.log(0, str, new Date().getTime());
-  yield new Promise(resolve => setTimeout(resolve, 1000));
   console.log(1, str, new Date().getTime());
+  yield new Promise(resolve => setTimeout(resolve, 1000));
 
-  // throw new Error("test error");
-
-  yield fInner(str);
-
-  // yield new Promise(resolve => setTimeout(resolve, 1000));
-  console.log(3, str, new Date().getTime());
+  yield fInner.run(str);
 
   yield new Promise(resolve => setTimeout(resolve, 1000));
-  console.log(5, str, new Date().getTime());
+  console.log(2, str, new Date().getTime());
 }
 
-const f = makeInterruptible(stepFunction, { interruptible: true, name: 'globalProcess' }, wiredAction);
-const fInner = makeInterruptible(stepFunctionInner, { interruptible: true, name: 'innerProcess' }, wiredAction);
+const f = createTask(stepFunction, { interruptible: false, name: 'globalProcess' }, wiredAction);
+const fInner = createTask(stepFunctionInner, { interruptible: false, name: 'innerProcess' }, wiredAction);
 
-f("test1");
-setTimeout(() => f("test3").catch(console.error), 1500);
+f.run("test1");
+// setTimeout(() => fInner.run("test3").catch(console.error), 1500);
+setTimeout(f.cancel, 2000);

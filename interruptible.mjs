@@ -1,68 +1,121 @@
-export const statuses = Object.freeze({
-  running: Symbol(),
-  stopped: Symbol()
+export const taskStatuses = Object.freeze({
+  pending: Symbol("pending"),
+  stopped: Symbol("stopped")
 });
 
-export function makeInterruptible(
-  generator,
-  params = { interruptible: true, name: Symbol() },
-  connect = null
-) {
-  let globalNonce;
-  let currentStatus = statuses.stopped;
+export class NotInterruptibleError extends Error {
+  constructor(...params) {
+    // Pass remaining arguments (including vendor specific ones) to parent constructor
+    super(...params);
 
-  const setRunning = () => {
-    currentStatus = statuses.running;
+    // Maintains proper stack trace for where our error was thrown (only available on V8)
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, NotInterruptibleError);
+    }
+
+    this.name = "NotInterruptibleError";
+  }
+}
+
+const cancelMarker = Symbol("InterruptibleTaskMarker");
+
+export const createTask = (
+  generator,
+  params = { interruptible: true, cancelable: true, name: Symbol() },
+  connect = null
+) => {
+  let currentStatus = taskStatuses.stopped;
+
+  const setPending = () => {
+    currentStatus = taskStatuses.pending;
     connect &&
       connect(
         params.name,
-        statuses.running
+        taskStatuses.pending
       );
   };
 
   const setStopped = () => {
-    currentStatus = statuses.stopped;
+    currentStatus = taskStatuses.stopped;
     connect &&
       connect(
         params.name,
-        statuses.stopped
+        taskStatuses.stopped
       );
   };
 
-  return async function(...args) {
-    if (currentStatus === statuses.running && !params.interruptible) {
-      throw new Error("Function is being executed already");
-    }
-    setRunning();
-    const localNonce = (globalNonce = {});
+  let currentNext;
+  let globalNonce;
+  let forceCancel = false;
 
-    const iter = generator(...args);
-    let resumeValue;
-    for (;;) {
-      let n;
-      try {
-        n = iter.next(resumeValue);
-      } catch (e) {
-        setStopped();
-        throw e;
-      }
-      if (n.done) {
-        setStopped();
-        return n.value;
-      }
-
-      if (n.value instanceof Promise) {
-        try {
-          resumeValue = await n.value;
-        } catch (e) {
-          setStopped();
-          throw e;
-        }
-      }
-      if (localNonce !== globalNonce && params.interruptible) {
-        return; // a new call was made
-      }
-      // next loop, we give resumeValue back to the generator
+  const cancel = () => {
+    forceCancel = true;
+    console.log("forced cancel for", params.name);
+    if (
+      currentNext.value instanceof Promise &&
+      typeof currentNext.value[cancelMarker] === "function"
+    ) {
+      currentNext.value[cancelMarker]();
     }
   };
-}
+
+  const run = function(...args) {
+    const runPromise = new Promise(async (resolve, reject) => {
+      if (currentStatus === taskStatuses.pending && !params.interruptible) {
+        throw new Error(`Task ${params.name} is being executed already`);
+      }
+      setPending();
+      let localNonce = (globalNonce = {});
+
+      const iter = generator(...args);
+      let resumeValue;
+
+      for (;;) {
+        try {
+          currentNext = iter.next(resumeValue);
+        } catch (e) {
+          setStopped();
+          reject(e);
+          throw e;
+        }
+        if (currentNext.done) {
+          setStopped();
+          resolve();
+          return currentNext.value;
+        }
+
+        if (currentNext.value instanceof Promise) {
+          if (typeof currentNext.value[cancelMarker] === "function") {
+            console.log("detected nested task");
+          }
+          try {
+            resumeValue = await currentNext.value;
+          } catch (e) {
+            setStopped();
+            reject(e);
+            throw e;
+          }
+        }
+        if (localNonce !== globalNonce || forceCancel) {
+          setStopped();
+          resolve();
+          return;
+        }
+      }
+    });
+
+    Object.defineProperty(runPromise, cancelMarker, {
+      enumerable: false,
+      configurable: false,
+      writable: false,
+      value: cancel
+    });
+
+    return runPromise;
+  };
+
+  return {
+    run,
+    cancel
+  };
+};
