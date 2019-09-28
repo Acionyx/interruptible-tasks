@@ -1,9 +1,11 @@
-export const taskStatuses = Object.freeze({
+'use strict';
+
+const taskStatuses = Object.freeze({
   pending: Symbol("pending"),
   stopped: Symbol("stopped")
 });
 
-export class NotInterruptibleError extends Error {
+class NotInterruptibleError extends Error {
   constructor(...params) {
     // Pass remaining arguments (including vendor specific ones) to parent constructor
     super(...params);
@@ -17,11 +19,29 @@ export class NotInterruptibleError extends Error {
   }
 }
 
+class NotCancelableError extends Error {
+  constructor(...params) {
+    // Pass remaining arguments (including vendor specific ones) to parent constructor
+    super(...params);
+
+    // Maintains proper stack trace for where our error was thrown (only available on V8)
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, NotCancelableError);
+    }
+
+    this.name = "NotCancelableError";
+  }
+}
+
 const cancelMarker = Symbol("InterruptibleTaskMarker");
 
-export const createTask = (
+const createTask = (
   generator,
-  params = { interruptible: true, cancelable: true, name: Symbol() },
+  params = {
+    interruptible: false,
+    cancelable: true,
+    name: Symbol("Unnamed task")
+  },
   connect = null
 ) => {
   let currentStatus = taskStatuses.stopped;
@@ -49,20 +69,31 @@ export const createTask = (
   let forceCancel = false;
 
   const cancel = () => {
+    if (!params.cancelable) {
+      throw new NotCancelableError(`Task ${params.name} is not cancelable`);
+    }
     forceCancel = true;
     console.log("forced cancel for", params.name);
     if (
       currentNext.value instanceof Promise &&
       typeof currentNext.value[cancelMarker] === "function"
     ) {
-      currentNext.value[cancelMarker]();
+      return currentNext.value[cancelMarker]();
     }
+    return true;
   };
 
   const run = function(...args) {
+    forceCancel = false;
+
     const runPromise = new Promise(async (resolve, reject) => {
       if (currentStatus === taskStatuses.pending && !params.interruptible) {
-        throw new Error(`Task ${params.name} is being executed already`);
+        reject(
+          new NotInterruptibleError(
+            `Task ${params.name} is being executed already`
+          )
+        );
+        return;
       }
       setPending();
       let localNonce = (globalNonce = {});
@@ -76,11 +107,11 @@ export const createTask = (
         } catch (e) {
           setStopped();
           reject(e);
-          throw e;
+          return;
         }
         if (currentNext.done) {
           setStopped();
-          resolve();
+          resolve(currentNext.value);
           return currentNext.value;
         }
 
@@ -93,7 +124,7 @@ export const createTask = (
           } catch (e) {
             setStopped();
             reject(e);
-            throw e;
+            return;
           }
         }
         if (localNonce !== globalNonce || forceCancel) {
@@ -118,4 +149,11 @@ export const createTask = (
     run,
     cancel
   };
+};
+
+module.exports = {
+  taskStatuses,
+  NotInterruptibleError,
+  NotCancelableError,
+  createTask
 };
