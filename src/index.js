@@ -1,11 +1,11 @@
 'use strict';
 
-const taskStatuses = Object.freeze({
+export const taskStatuses = Object.freeze({
   pending: Symbol("pending"),
   stopped: Symbol("stopped")
 });
 
-class NotInterruptibleError extends Error {
+export class NotInterruptibleError extends Error {
   constructor(...params) {
     // Pass remaining arguments (including vendor specific ones) to parent constructor
     super(...params);
@@ -19,7 +19,7 @@ class NotInterruptibleError extends Error {
   }
 }
 
-class NotCancelableError extends Error {
+export class NotCancelableError extends Error {
   constructor(...params) {
     // Pass remaining arguments (including vendor specific ones) to parent constructor
     super(...params);
@@ -35,7 +35,7 @@ class NotCancelableError extends Error {
 
 const cancelMarker = Symbol("InterruptibleTaskMarker");
 
-const createTask = (
+export const createTask = (
   generator,
   params = {
     interruptible: false,
@@ -149,11 +149,4 @@ const createTask = (
     run,
     cancel
   };
-};
-
-module.exports = {
-  taskStatuses,
-  NotInterruptibleError,
-  NotCancelableError,
-  createTask
 };

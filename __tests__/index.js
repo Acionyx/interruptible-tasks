@@ -1,6 +1,6 @@
 "use strict";
 
-const library = require("../index");
+const library = require("../dist");
 
 const { createTask, taskStatuses } = library;
 
