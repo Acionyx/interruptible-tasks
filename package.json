@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "test": "yarn build && jest",
+    "test": "jest",
     "build": "npx babel src --out-dir dist",
     "start": "npx babel src --watch --out-dir dist"
   },
@@ -9,6 +9,7 @@
     "@babel/core": "^7.6.2",
     "@babel/plugin-transform-runtime": "^7.6.2",
     "@babel/preset-env": "^7.6.2",
+    "babel-jest": "^24.9.0",
     "jest": "^24.9.0"
   },
   "name": "interruptible-tasks",
