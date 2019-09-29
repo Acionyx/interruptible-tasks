@@ -1,6 +1,6 @@
-'use strict';
+"use strict";
 
-const debug = require('debug')('interruptible-tasks');
+const debug = require("debug")("interruptible-tasks");
 
 export const taskStatuses = Object.freeze({
   pending: Symbol("pending"),
@@ -114,8 +114,8 @@ export const createTask = (
         }
         if (currentNext.done) {
           setStopped();
-          resolve(currentNext.value);
-          return currentNext.value;
+          resolve(resumeValue);
+          return resumeValue;
         }
 
         if (currentNext.value instanceof Promise) {
@@ -129,6 +129,8 @@ export const createTask = (
             reject(e);
             return;
           }
+        } else {
+          resumeValue = currentNext.value;
         }
         if (localNonce !== globalNonce || forceCancel) {
           setStopped();

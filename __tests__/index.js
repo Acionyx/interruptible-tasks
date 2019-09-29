@@ -2,7 +2,12 @@
 
 const library = require("../dist");
 
-const { createTask, taskStatuses } = library;
+const {
+  createTask,
+  taskStatuses,
+  NotCancelableError,
+  NotInterruptibleError
+} = library;
 
 const wiredAction = (name, status) => {
   console.log(
@@ -12,59 +17,11 @@ const wiredAction = (name, status) => {
   );
 };
 
-function* stepFunctionInner(str) {
-  console.log(11, str, new Date().getTime());
-  yield new Promise(resolve => setTimeout(resolve, 1000));
-
-  console.log(22, str, new Date().getTime());
-  yield new Promise(resolve => setTimeout(resolve, 1000));
-
-  console.log(33, str, new Date().getTime());
-  yield new Promise(resolve => setTimeout(resolve, 1000));
-
-  console.log(44, str, new Date().getTime());
-  yield new Promise(resolve => setTimeout(resolve, 1000));
-
-  console.log(55, str, new Date().getTime());
-}
-
-function* stepFunction(str) {
-  console.log(1, str, new Date().getTime());
-  yield new Promise(resolve => setTimeout(resolve, 1000));
-  // throw new Error('boom');
-  yield fInner.run(str);
-
-  yield new Promise(resolve => setTimeout(resolve, 1000));
-  console.log(2, str, new Date().getTime());
-}
-
-// const f = createTask(
-//   stepFunction,
-//   { interruptible: false, cancelable: true, name: "globalProcess" },
-//   wiredAction
-// );
-// const fInner = createTask(
-//   stepFunctionInner,
-//   { interruptible: false, cancelable: false, name: "innerProcess" },
-//   wiredAction
-// );
-
-// f.run("test1").catch(console.error);
-// // setTimeout(() => f.run("test3").catch(console.error), 1500);
-// setTimeout(() => {
-//   try {
-//     f.cancel();
-//   } catch (e) {
-//     console.error(e);
-//   }
-// }, 2000);
-//
-//
-//
-
 test("API exists", () => {
   expect(typeof createTask).toBe("function");
   expect(typeof taskStatuses).toBe("object");
+  expect(typeof NotCancelableError).toBe("function");
+  expect(typeof NotInterruptibleError).toBe("function");
 });
 
 test("createTask execution", () => {
@@ -76,4 +33,84 @@ test("createTask execution", () => {
   expect(typeof task).toBe("object");
   expect(typeof task.run).toBe("function");
   expect(typeof task.cancel).toBe("function");
+});
+
+test("task non interruptibility", async () => {
+  expect.assertions(2);
+
+  const nonCancelableTask = createTask(
+    function*() {
+      yield new Promise(resolve => setTimeout(resolve, 1000));
+    },
+    { interruptible: false, cancelable: false, name: "nonCancelableTask" }
+  );
+
+  nonCancelableTask.run();
+  await expect(nonCancelableTask.run()).rejects.toEqual(
+    new NotInterruptibleError(
+      "Task nonCancelableTask is being executed already"
+    )
+  );
+
+  const cancelableTask = createTask(
+    function*() {
+      yield new Promise(resolve => setTimeout(resolve, 1000));
+    },
+    { interruptible: false, cancelable: true, name: "cancelableTask" }
+  );
+
+  cancelableTask.run();
+  await expect(cancelableTask.run()).rejects.toEqual(
+    new NotInterruptibleError("Task cancelableTask is being executed already")
+  );
+});
+
+test("task non cancelability", async () => {
+  expect.assertions(2);
+
+  const nonInterruptibleTask = createTask(
+    function*() {
+      yield new Promise(resolve => setTimeout(resolve, 1000));
+    },
+    { interruptible: false, cancelable: false, name: "nonInterruptibleTask" }
+  );
+
+  nonInterruptibleTask.run();
+  try {
+    nonInterruptibleTask.cancel();
+  } catch (e) {
+    expect(e).toEqual(
+      new NotCancelableError("Task nonInterruptibleTask is not cancelable")
+    );
+  }
+
+  const interruptibleTask = createTask(
+    function*() {
+      yield new Promise(resolve => setTimeout(resolve, 1000));
+    },
+    { interruptible: true, cancelable: false, name: "interruptibleTask" }
+  );
+
+  interruptibleTask.run();
+  try {
+    interruptibleTask.cancel();
+  } catch (e) {
+    expect(e).toEqual(
+      new NotCancelableError("Task interruptibleTask is not cancelable")
+    );
+  }
+});
+
+test("task returns a value", async () => {
+  expect.assertions(1);
+
+  const value = "final value";
+  const taskWithValue = createTask(
+    function*() {
+      yield value;
+    },
+    { interruptible: false, cancelable: false, name: "taskWithValue" }
+  );
+
+  return expect(taskWithValue.run()).resolves.toEqual(value);
 });
