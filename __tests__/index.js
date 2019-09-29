@@ -38,16 +38,16 @@ function* stepFunction(str) {
   console.log(2, str, new Date().getTime());
 }
 
-const f = createTask(
-  stepFunction,
-  { interruptible: false, cancelable: true, name: "globalProcess" },
-  wiredAction
-);
-const fInner = createTask(
-  stepFunctionInner,
-  { interruptible: false, cancelable: false, name: "innerProcess" },
-  wiredAction
-);
+// const f = createTask(
+//   stepFunction,
+//   { interruptible: false, cancelable: true, name: "globalProcess" },
+//   wiredAction
+// );
+// const fInner = createTask(
+//   stepFunctionInner,
+//   { interruptible: false, cancelable: false, name: "innerProcess" },
+//   wiredAction
+// );
 
 // f.run("test1").catch(console.error);
 // // setTimeout(() => f.run("test3").catch(console.error), 1500);

@@ -19,6 +19,7 @@
   "license": "MIT",
   "private": false,
   "dependencies": {
-    "@babel/runtime": "^7.6.2"
+    "@babel/runtime": "^7.6.2",
+    "debug": "^4.1.1"
   }
 }

@@ -1,5 +1,7 @@
 'use strict';
 
+const debug = require('debug')('interruptible-tasks');
+
 export const taskStatuses = Object.freeze({
   pending: Symbol("pending"),
   stopped: Symbol("stopped")
@@ -73,7 +75,7 @@ export const createTask = (
       throw new NotCancelableError(`Task ${params.name} is not cancelable`);
     }
     forceCancel = true;
-    console.log("forced cancel for", params.name);
+    debug(`CANCEL has been called for ${params.name}`);
     if (
       currentNext.value instanceof Promise &&
       typeof currentNext.value[cancelMarker] === "function"
@@ -84,6 +86,7 @@ export const createTask = (
   };
 
   const run = function(...args) {
+    debug(`RUN has been called for ${params.name}`);
     forceCancel = false;
 
     const runPromise = new Promise(async (resolve, reject) => {
@@ -117,7 +120,7 @@ export const createTask = (
 
         if (currentNext.value instanceof Promise) {
           if (typeof currentNext.value[cancelMarker] === "function") {
-            console.log("detected nested task");
+            debug(`Nested Task has been detected in ${params.name}`);
           }
           try {
             resumeValue = await currentNext.value;
@@ -145,6 +148,7 @@ export const createTask = (
     return runPromise;
   };
 
+  debug(`Task has been created with name ${params.name}`);
   return {
     run,
     cancel
