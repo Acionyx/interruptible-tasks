@@ -9,10 +9,8 @@ export const taskStatuses = Object.freeze({
 
 export class NotInterruptibleError extends Error {
   constructor(...params) {
-    // Pass remaining arguments (including vendor specific ones) to parent constructor
     super(...params);
 
-    // Maintains proper stack trace for where our error was thrown (only available on V8)
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, NotInterruptibleError);
     }
@@ -23,15 +21,37 @@ export class NotInterruptibleError extends Error {
 
 export class NotCancelableError extends Error {
   constructor(...params) {
-    // Pass remaining arguments (including vendor specific ones) to parent constructor
     super(...params);
 
-    // Maintains proper stack trace for where our error was thrown (only available on V8)
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, NotCancelableError);
     }
 
     this.name = "NotCancelableError";
+  }
+}
+
+export class TaskHasBeenCancelledError extends Error {
+  constructor(...params) {
+    super(...params);
+
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, TaskHasBeenCancelledError);
+    }
+
+    this.name = "TaskHasBeenCancelledError";
+  }
+}
+
+export class TaskHasBeenInterruptedError extends Error {
+  constructor(...params) {
+    super(...params);
+
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, TaskHasBeenInterruptedError);
+    }
+
+    this.name = "TaskHasBeenInterruptedError";
   }
 }
 
@@ -134,7 +154,19 @@ export const createTask = (
         }
         if (localNonce !== globalNonce || forceCancel) {
           setStopped();
-          resolve();
+          if (forceCancel) {
+            reject(
+              new TaskHasBeenCancelledError(
+                `Task ${params.name} has been cancelled`
+              )
+            );
+          } else {
+            reject(
+              new TaskHasBeenInterruptedError(
+                `Task ${params.name} has been interrupted`
+              )
+            );
+          }
           return;
         }
       }

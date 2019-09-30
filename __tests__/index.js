@@ -1,12 +1,14 @@
 "use strict";
 
-const library = require("../dist");
+const library = require("../src");
 
 const {
   createTask,
   taskStatuses,
   NotCancelableError,
-  NotInterruptibleError
+  NotInterruptibleError,
+  TaskHasBeenCancelledError,
+  TaskHasBeenInterruptedError
 } = library;
 
 const wiredAction = (name, status) => {
@@ -35,12 +37,26 @@ test("createTask execution", () => {
   expect(typeof task.cancel).toBe("function");
 });
 
+test("task returns a value", async () => {
+  expect.assertions(1);
+
+  const value = "final value";
+  const taskWithValue = createTask(
+    function*() {
+      yield value;
+    },
+    { interruptible: false, cancelable: false, name: "taskWithValue" }
+  );
+
+  return expect(taskWithValue.run()).resolves.toEqual(value);
+});
+
 test("task non interruptibility", async () => {
   expect.assertions(2);
 
   const nonCancelableTask = createTask(
     function*() {
-      yield new Promise(resolve => setTimeout(resolve, 1000));
+      yield new Promise(resolve => setTimeout(resolve, 200));
     },
     { interruptible: false, cancelable: false, name: "nonCancelableTask" }
   );
@@ -54,7 +70,7 @@ test("task non interruptibility", async () => {
 
   const cancelableTask = createTask(
     function*() {
-      yield new Promise(resolve => setTimeout(resolve, 1000));
+      yield new Promise(resolve => setTimeout(resolve, 200));
     },
     { interruptible: false, cancelable: true, name: "cancelableTask" }
   );
@@ -70,7 +86,7 @@ test("task non cancelability", async () => {
 
   const nonInterruptibleTask = createTask(
     function*() {
-      yield new Promise(resolve => setTimeout(resolve, 1000));
+      yield new Promise(resolve => setTimeout(resolve, 200));
     },
     { interruptible: false, cancelable: false, name: "nonInterruptibleTask" }
   );
@@ -86,7 +102,7 @@ test("task non cancelability", async () => {
 
   const interruptibleTask = createTask(
     function*() {
-      yield new Promise(resolve => setTimeout(resolve, 1000));
+      yield new Promise(resolve => setTimeout(resolve, 200));
     },
     { interruptible: true, cancelable: false, name: "interruptibleTask" }
   );
@@ -101,16 +117,74 @@ test("task non cancelability", async () => {
   }
 });
 
-test("task returns a value", async () => {
-  expect.assertions(1);
+test("task interruptibility", async () => {
+  expect.assertions(4);
 
-  const value = "final value";
-  const taskWithValue = createTask(
-    function*() {
-      yield value;
+  const nonCancelableTask = createTask(
+    function*(data) {
+      yield new Promise(resolve => setTimeout(resolve, 200));
+      yield data;
     },
-    { interruptible: false, cancelable: false, name: "taskWithValue" }
+    { interruptible: true, cancelable: false, name: "nonCancelableTask" }
   );
 
-  return expect(taskWithValue.run()).resolves.toEqual(value);
+  nonCancelableTask.run("not ok").catch(e => {
+    expect(e).toEqual(
+      new TaskHasBeenInterruptedError(
+        "Task nonCancelableTask has been interrupted"
+      )
+    );
+  });
+  await expect(nonCancelableTask.run("ok")).resolves.toEqual("ok");
+
+  const cancelableTask = createTask(
+    function*(data) {
+      yield new Promise(resolve => setTimeout(resolve, 200));
+      yield data;
+    },
+    { interruptible: true, cancelable: true, name: "cancelableTask" }
+  );
+
+  cancelableTask.run("not ok").catch(e => {
+    expect(e).toEqual(
+      new TaskHasBeenInterruptedError(
+        "Task cancelableTask has been interrupted"
+      )
+    );
+  });
+  await expect(cancelableTask.run("ok")).resolves.toEqual("ok");
+});
+
+test("task cancelability", async () => {
+  expect.assertions(4);
+
+  const nonInterruptibleTask = createTask(
+    function*(data) {
+      yield new Promise(resolve => setTimeout(resolve, 200));
+      yield data;
+    },
+    { interruptible: false, cancelable: true, name: "nonInterruptibleTask" }
+  );
+
+  const runPromise1 = nonInterruptibleTask.run();
+  expect(nonInterruptibleTask.cancel()).toBe(true);
+  await expect(runPromise1).rejects.toEqual(
+    new TaskHasBeenCancelledError(
+      "Task nonInterruptibleTask has been cancelled"
+    )
+  );
+
+  const interruptibleTask = createTask(
+    function*(data) {
+      yield new Promise(resolve => setTimeout(resolve, 200));
+      yield data;
+    },
+    { interruptible: true, cancelable: true, name: "interruptibleTask" }
+  );
+
+  const runPromise2 = interruptibleTask.run();
+  expect(interruptibleTask.cancel()).toBe(true);
+  await expect(runPromise2).rejects.toEqual(
+    new TaskHasBeenCancelledError("Task interruptibleTask has been cancelled")
+  );
 });
