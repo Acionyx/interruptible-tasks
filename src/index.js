@@ -146,7 +146,22 @@ export const createTask = (
             resumeValue = await currentNext.value;
           } catch (e) {
             setStopped();
-            reject(e);
+            if (e instanceof TaskHasBeenInterruptedError) {
+              reject(
+                new TaskHasBeenInterruptedError(
+                  `Task ${params.name} has been interrupted`
+                )
+              );
+            } else if (e instanceof TaskHasBeenCancelledError) {
+              reject(
+                new TaskHasBeenCancelledError(
+                  `Task ${params.name} has been cancelled`
+                )
+              );
+            }
+            {
+              reject(e);
+            }
             return;
           }
         } else {
