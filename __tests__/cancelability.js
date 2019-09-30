@@ -14,7 +14,7 @@ test("task non cancelability", async () => {
 
   const nonInterruptibleTask = createTask(
     function*() {
-      yield new Promise(resolve => setTimeout(resolve, 200));
+      yield new Promise(resolve => setTimeout(resolve, 10));
     },
     { interruptible: false, cancelable: false, name: "nonInterruptibleTask" }
   );
@@ -30,7 +30,7 @@ test("task non cancelability", async () => {
 
   const interruptibleTask = createTask(
     function*() {
-      yield new Promise(resolve => setTimeout(resolve, 200));
+      yield new Promise(resolve => setTimeout(resolve, 10));
     },
     { interruptible: true, cancelable: false, name: "interruptibleTask" }
   );
@@ -50,7 +50,7 @@ test("task cancelability", async () => {
 
   const nonInterruptibleTask = createTask(
     function*(data) {
-      yield new Promise(resolve => setTimeout(resolve, 200));
+      yield new Promise(resolve => setTimeout(resolve, 10));
       yield data;
     },
     { interruptible: false, cancelable: true, name: "nonInterruptibleTask" }
@@ -66,7 +66,7 @@ test("task cancelability", async () => {
 
   const interruptibleTask = createTask(
     function*(data) {
-      yield new Promise(resolve => setTimeout(resolve, 200));
+      yield new Promise(resolve => setTimeout(resolve, 10));
       yield data;
     },
     { interruptible: true, cancelable: true, name: "interruptibleTask" }
