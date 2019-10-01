@@ -146,22 +146,28 @@ export const createTask = (
             resumeValue = await currentNext.value;
           } catch (e) {
             setStopped();
-            if (e instanceof TaskHasBeenInterruptedError) {
-              reject(
-                new TaskHasBeenInterruptedError(
-                  `Task ${params.name} has been interrupted`
-                )
-              );
-            } else if (e instanceof TaskHasBeenCancelledError) {
-              reject(
-                new TaskHasBeenCancelledError(
-                  `Task ${params.name} has been cancelled`
-                )
-              );
+            if (typeof currentNext.value[cancelMarker] === "function") {
+              if (
+                localNonce !== globalNonce &&
+                e instanceof TaskHasBeenInterruptedError
+              ) {
+                reject(
+                  new TaskHasBeenInterruptedError(
+                    `Task ${params.name} has been interrupted`
+                  )
+                );
+              } else if (
+                forceCancel &&
+                e instanceof TaskHasBeenCancelledError
+              ) {
+                reject(
+                  new TaskHasBeenCancelledError(
+                    `Task ${params.name} has been cancelled`
+                  )
+                );
+              }
             }
-            {
-              reject(e);
-            }
+            reject(e);
             return;
           }
         } else {
