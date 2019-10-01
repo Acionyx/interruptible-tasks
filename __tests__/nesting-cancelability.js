@@ -35,9 +35,7 @@ test("nested tasks cancels correctly", async () => {
 
   const runPromise = firstLevelTask.run().catch(e => {
     expect(e).toEqual(
-      new TaskHasBeenCancelledError(
-        "Task firstLevelTask has been cancelled"
-      )
+      new TaskHasBeenCancelledError("Task firstLevelTask has been cancelled")
     );
   });
 
@@ -112,9 +110,7 @@ test("nested task cancels correctly without inner catch", async () => {
   const value = "value";
   const runPromise = firstLevelTask.run(value).catch(e => {
     expect(e).toEqual(
-      new TaskHasBeenCancelledError(
-        "Task secondLevelTask has been cancelled"
-      )
+      new TaskHasBeenCancelledError("Task secondLevelTask has been cancelled")
     );
   });
   secondLevelTask.cancel();
