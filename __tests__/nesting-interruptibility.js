@@ -84,7 +84,7 @@ test("nested task interrupts correctly with inner catch", async () => {
 });
 
 test("nested task interrupts correctly without inner catch", async () => {
-  expect.assertions(2);
+  expect.assertions(1);
 
   const thirdLevelTask = createTask(
     function*(value) {
@@ -117,5 +117,5 @@ test("nested task interrupts correctly without inner catch", async () => {
       )
     );
   });
-  secondLevelTask.run(value);
+  await secondLevelTask.run(value);
 });
