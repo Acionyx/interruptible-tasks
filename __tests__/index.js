@@ -40,3 +40,17 @@ test("task returns a value", async () => {
 
   return expect(taskWithValue.run()).resolves.toEqual(value);
 });
+
+test("task handles exception", async () => {
+  expect.assertions(1);
+
+  const value = "some error";
+  const taskWithValue = createTask(
+    function*() {
+      throw new Error(value);
+    },
+    { interruptible: false, cancelable: false, name: "taskWithValue" }
+  );
+
+  return expect(taskWithValue.run()).rejects.toEqual(new Error(value));
+});
