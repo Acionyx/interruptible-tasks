@@ -1,11 +1,13 @@
 {
   "scripts": {
     "test": "jest",
-    "build": "yarn build-es3 && yarn build-es5",
+    "build": "yarn clean && yarn build-es3 && yarn build-es5",
     "build-es3": "BABEL_ENV=es3 npx rollup -c",
     "build-es5": "BABEL_ENV=es5 npx rollup -c",
     "start": "npx babel src --watch --out-dir dist",
-    "prepublish": "yarn test && yarn build"
+    "prepublish": "yarn test && yarn build",
+    "clean": "rimraf dist",
+    "lint": "eslint --ignore-path .gitignore --ignore-path .prettierignore \"**/*.js\""
   },
   "devDependencies": {
     "@babel/cli": "^7.6.2",
@@ -13,12 +15,18 @@
     "@babel/plugin-syntax-dynamic-import": "^7.2.0",
     "@babel/preset-env": "^7.6.2",
     "@types/jest": "^24.0.18",
+    "babel-eslint": "^10.0.3",
     "babel-jest": "^24.9.0",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "eslint": "^6.5.1",
+    "eslint-config-prettier": "^6.3.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-prettier": "^3.1.1",
     "husky": ">=3",
     "jest": "^24.9.0",
     "lint-staged": ">=9",
     "prettier": "^1.18.2",
+    "rimraf": "^3.0.0",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-terser": "^5.1.2"
   },
@@ -44,8 +52,12 @@
     }
   },
   "lint-staged": {
-    "*.{js,css,json,md}": [
+    "*.{json,scss,md}": [
       "prettier --write",
+      "git add"
+    ],
+    "*.{js,jsx}": [
+      "eslint --fix --ignore-path .prettierignore",
       "git add"
     ]
   }

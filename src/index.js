@@ -1,10 +1,10 @@
-"use strict";
+'use strict';
 
 const debug = () => {};
 
 export const taskStatuses = Object.freeze({
-  pending: Symbol("pending"),
-  stopped: Symbol("stopped")
+  pending: Symbol('pending'),
+  stopped: Symbol('stopped')
 });
 
 export class NotInterruptibleError extends Error {
@@ -15,7 +15,7 @@ export class NotInterruptibleError extends Error {
       Error.captureStackTrace(this, NotInterruptibleError);
     }
 
-    this.name = "NotInterruptibleError";
+    this.name = 'NotInterruptibleError';
   }
 }
 
@@ -27,7 +27,7 @@ export class NotCancelableError extends Error {
       Error.captureStackTrace(this, NotCancelableError);
     }
 
-    this.name = "NotCancelableError";
+    this.name = 'NotCancelableError';
   }
 }
 
@@ -39,7 +39,7 @@ export class TaskHasBeenCancelledError extends Error {
       Error.captureStackTrace(this, TaskHasBeenCancelledError);
     }
 
-    this.name = "TaskHasBeenCancelledError";
+    this.name = 'TaskHasBeenCancelledError';
   }
 }
 
@@ -51,18 +51,18 @@ export class TaskHasBeenInterruptedError extends Error {
       Error.captureStackTrace(this, TaskHasBeenInterruptedError);
     }
 
-    this.name = "TaskHasBeenInterruptedError";
+    this.name = 'TaskHasBeenInterruptedError';
   }
 }
 
-const cancelMarker = Symbol("InterruptibleTaskMarker");
+const cancelMarker = Symbol('InterruptibleTaskMarker');
 
 export const createTask = (
   generator,
   params = {
     interruptible: false,
     cancelable: true,
-    name: Symbol("Unnamed task")
+    name: Symbol('Unnamed task')
   },
   connect = null
 ) => {
@@ -70,7 +70,7 @@ export const createTask = (
 
   const setPending = () => {
     currentStatus = taskStatuses.pending;
-    connect &&
+    if (connect)
       connect(
         params.name,
         taskStatuses.pending
@@ -79,7 +79,7 @@ export const createTask = (
 
   const setStopped = () => {
     currentStatus = taskStatuses.stopped;
-    connect &&
+    if (connect)
       connect(
         params.name,
         taskStatuses.stopped
@@ -98,7 +98,7 @@ export const createTask = (
     debug(`CANCEL has been called for ${params.name}`);
     if (
       currentNext.value instanceof Promise &&
-      typeof currentNext.value[cancelMarker] === "function"
+      typeof currentNext.value[cancelMarker] === 'function'
     ) {
       return currentNext.value[cancelMarker]();
     }
@@ -119,7 +119,7 @@ export const createTask = (
         return;
       }
       setPending();
-      let localNonce = (globalNonce = {});
+      const localNonce = (globalNonce = {});
 
       const iter = generator(...args);
       let resumeValue;
@@ -139,14 +139,14 @@ export const createTask = (
         }
 
         if (currentNext.value instanceof Promise) {
-          if (typeof currentNext.value[cancelMarker] === "function") {
+          if (typeof currentNext.value[cancelMarker] === 'function') {
             debug(`Nested Task has been detected in ${params.name}`);
           }
           try {
             resumeValue = await currentNext.value;
           } catch (e) {
             setStopped();
-            if (typeof currentNext.value[cancelMarker] === "function") {
+            if (typeof currentNext.value[cancelMarker] === 'function') {
               if (
                 localNonce !== globalNonce &&
                 e instanceof TaskHasBeenInterruptedError

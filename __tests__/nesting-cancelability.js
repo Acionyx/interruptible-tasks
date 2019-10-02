@@ -1,41 +1,34 @@
-"use strict";
+'use strict';
 
-import {
-  createTask,
-  taskStatuses,
-  NotCancelableError,
-  NotInterruptibleError,
-  TaskHasBeenCancelledError,
-  TaskHasBeenInterruptedError
-} from "../src";
+import { createTask, TaskHasBeenCancelledError } from '../src';
 
-test("nested tasks cancels correctly", async () => {
+test('nested tasks cancels correctly', async () => {
   expect.assertions(1);
 
   const thirdLevelTask = createTask(
     function*(value) {
       yield new Promise(resolve => setTimeout(() => resolve(value), 10));
     },
-    { interruptible: false, cancelable: true, name: "thirdLevelTask" }
+    { interruptible: false, cancelable: true, name: 'thirdLevelTask' }
   );
 
   const secondLevelTask = createTask(
     function*(value) {
       yield thirdLevelTask.run(value);
     },
-    { interruptible: false, cancelable: true, name: "secondLevelTask" }
+    { interruptible: false, cancelable: true, name: 'secondLevelTask' }
   );
 
   const firstLevelTask = createTask(
     function*(value) {
       yield secondLevelTask.run(value);
     },
-    { interruptible: false, cancelable: true, name: "firstLevelTask" }
+    { interruptible: false, cancelable: true, name: 'firstLevelTask' }
   );
 
   const runPromise = firstLevelTask.run().catch(e => {
     expect(e).toEqual(
-      new TaskHasBeenCancelledError("Task firstLevelTask has been cancelled")
+      new TaskHasBeenCancelledError('Task firstLevelTask has been cancelled')
     );
   });
 
@@ -43,14 +36,14 @@ test("nested tasks cancels correctly", async () => {
   await runPromise;
 });
 
-test("nested tasks cancels correctly with inner catch", async () => {
+test('nested tasks cancels correctly with inner catch', async () => {
   expect.assertions(2);
 
   const thirdLevelTask = createTask(
     function*(value) {
       yield new Promise(resolve => setTimeout(() => resolve(value), 10));
     },
-    { interruptible: false, cancelable: true, name: "thirdLevelTask" }
+    { interruptible: false, cancelable: true, name: 'thirdLevelTask' }
   );
 
   const secondLevelTask = createTask(
@@ -58,7 +51,7 @@ test("nested tasks cancels correctly with inner catch", async () => {
       yield new Promise(resolve => setTimeout(resolve, 10));
       yield thirdLevelTask.run(value);
     },
-    { interruptible: false, cancelable: true, name: "secondLevelTask" }
+    { interruptible: false, cancelable: true, name: 'secondLevelTask' }
   );
 
   const firstLevelTask = createTask(
@@ -66,29 +59,29 @@ test("nested tasks cancels correctly with inner catch", async () => {
       yield secondLevelTask.run(value).catch(e => {
         expect(e).toEqual(
           new TaskHasBeenCancelledError(
-            "Task secondLevelTask has been cancelled"
+            'Task secondLevelTask has been cancelled'
           )
         );
       });
       yield value;
     },
-    { interruptible: false, cancelable: true, name: "firstLevelTask" }
+    { interruptible: false, cancelable: true, name: 'firstLevelTask' }
   );
 
-  const value = "value";
+  const value = 'value';
   const runPromise = firstLevelTask.run(value);
   secondLevelTask.cancel();
   await expect(runPromise).resolves.toBe(value);
 });
 
-test("nested task cancels correctly without inner catch", async () => {
+test('nested task cancels correctly without inner catch', async () => {
   expect.assertions(1);
 
   const thirdLevelTask = createTask(
     function*(value) {
       yield new Promise(resolve => setTimeout(() => resolve(value), 10));
     },
-    { interruptible: false, cancelable: true, name: "thirdLevelTask" }
+    { interruptible: false, cancelable: true, name: 'thirdLevelTask' }
   );
 
   const secondLevelTask = createTask(
@@ -96,7 +89,7 @@ test("nested task cancels correctly without inner catch", async () => {
       yield new Promise(resolve => setTimeout(resolve, 10));
       yield thirdLevelTask.run(value);
     },
-    { interruptible: false, cancelable: true, name: "secondLevelTask" }
+    { interruptible: false, cancelable: true, name: 'secondLevelTask' }
   );
 
   const firstLevelTask = createTask(
@@ -104,13 +97,13 @@ test("nested task cancels correctly without inner catch", async () => {
       yield secondLevelTask.run(value);
       yield value;
     },
-    { interruptible: false, cancelable: true, name: "firstLevelTask" }
+    { interruptible: false, cancelable: true, name: 'firstLevelTask' }
   );
 
-  const value = "value";
+  const value = 'value';
   const runPromise = firstLevelTask.run(value).catch(e => {
     expect(e).toEqual(
-      new TaskHasBeenCancelledError("Task secondLevelTask has been cancelled")
+      new TaskHasBeenCancelledError('Task secondLevelTask has been cancelled')
     );
   });
   secondLevelTask.cancel();
