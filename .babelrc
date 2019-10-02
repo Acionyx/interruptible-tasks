@@ -1,7 +1,17 @@
 {
   "env": {
     "es5": {
-      "presets": ["@babel/preset-env"]
+      "presets": [
+        [
+          "@babel/preset-env",
+          {
+            "targets": {
+              "node": "current"
+            },
+            "modules": false
+          }
+        ]
+      ]
     },
     "es3": {
       "presets": [
@@ -9,15 +19,32 @@
           "@babel/env",
           {
             "targets": {
-              "browsers": ["safari 4"]
+              "browsers": ["safari 4", "dead"]
             },
             "loose": true,
+            "modules": false,
             "useBuiltIns": "usage",
             "corejs": "3"
           }
         ]
       ],
 
+      "plugins": [
+        "transform-object-rest-spread",
+        "@babel/syntax-dynamic-import"
+      ]
+    },
+    "test": {
+      "presets": [
+        [
+          "@babel/preset-env",
+          {
+            "targets": {
+              "node": "current"
+            }
+          }
+        ]
+      ],
       "plugins": [
         "transform-object-rest-spread",
         "@babel/syntax-dynamic-import"
