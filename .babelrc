@@ -1,10 +1,27 @@
 {
-  "presets": ["@babel/preset-env"],
-  "plugins": [
-    ["@babel/plugin-transform-runtime",
-      {
-        "regenerator": true
-      }
-    ]
-  ]
+  "env": {
+    "es5": {
+      "presets": ["@babel/preset-env"]
+    },
+    "es3": {
+      "presets": [
+        [
+          "@babel/env",
+          {
+            "targets": {
+              "browsers": ["safari 4"]
+            },
+            "loose": true,
+            "useBuiltIns": "usage",
+            "corejs": "3"
+          }
+        ]
+      ],
+
+      "plugins": [
+        "transform-object-rest-spread",
+        "@babel/syntax-dynamic-import"
+      ]
+    }
+  }
 }

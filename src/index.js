@@ -1,6 +1,6 @@
 "use strict";
 
-const debug = require("debug")("interruptible-tasks");
+const debug = () => {};
 
 export const taskStatuses = Object.freeze({
   pending: Symbol("pending"),
