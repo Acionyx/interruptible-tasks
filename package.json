@@ -6,9 +6,10 @@
     "build-es3": "BABEL_ENV=es3 npx rollup -c",
     "build-es5": "BABEL_ENV=es5 npx rollup -c",
     "start": "npx babel src --watch --out-dir dist",
-    "prepublish": "yarn test && yarn build",
     "clean": "rimraf dist",
-    "lint": "eslint --ignore-path .gitignore --ignore-path .prettierignore \"**/*.js\""
+    "lint": "eslint --ignore-path .gitignore --ignore-path .prettierignore \"**/*.js\"",
+    "posttest": "yarn lint",
+    "prepublishOnly": "yarn test && yarn build"
   },
   "devDependencies": {
     "@babel/cli": "^7.6.2",
