@@ -88,12 +88,12 @@ const demoFunction = function*(value) {
 
 Defaults:
 
-```json
-{
-  "interruptible": false,
-  "cancelable": true,
-  "name": Symbol("Unnamed task")
-}
+```js
+({
+  interruptible: false,
+  cancelable: true,
+  name: Symbol('Unnamed task')
+});
 ```
 
 You can redefine any of those parameters. Explanation:
@@ -236,7 +236,7 @@ import {} from 'interruptible-tasks/index.es3.cjs.js'; // CommonJS, ES3
 
 ## More examples
 
-There are a lot of good examples in tests, you can find them at GitHub repo in `__tests__` folder.
+There are [a lot of good examples in tests](https://github.com/Acionyx/interruptible-tasks/tree/master/__tests__), you can find them at GitHub repo in `__tests__` folder.
 
 ## Authors
 
