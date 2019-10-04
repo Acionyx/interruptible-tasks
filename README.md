@@ -62,7 +62,7 @@ task.run('Here we go!'); // resolves with "Here we go!" after 1 second
 
 ### API
 
-#### createTask
+#### createTask(generator, params, connect)
 
 ##### Parameters
 
@@ -139,7 +139,7 @@ task.cancel(); // true
 
 If `cancelable: false` is passed, `.cancel()` call will be rejected immediately with `NotCancelableError`.
 
-`name` - name of your task to be passed to `connect` function. If you do not provide `name`, default name will be
+`name` - name of your Task to be passed to `connect` function. If you do not provide `name`, default name will be
 used. It does not affect any other behaviour. `name` could be of any data type.
 
 **`connect`** - **optional** - function to be used for passing Task status updates (pending/stopped).
@@ -176,6 +176,7 @@ console.log(stateImitation.get(taskName) === taskStatuses.stopped); // === true;
 ##### Task.run and Task.cancel
 
 `run` function returns a Promise.
+`run` accepts any amount of arguments to be passed to `generator` function.
 It will be resolved with value returned by `generator` function once it is finished.
 It will be rejected with custom error if Task is interrupted or cancelled.
 It will be rejected if any other error occurs inside `generator` function.
