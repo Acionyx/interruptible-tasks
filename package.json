@@ -36,7 +36,7 @@
     "rollup-plugin-terser": "^5.1.2"
   },
   "name": "interruptible-tasks",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "dist/index.es5.cjs.js",
   "module": "dist/index.es5.es.js",
   "browser": "dist/index.es5.iife.js",
