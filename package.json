@@ -1,6 +1,6 @@
 {
   "name": "interruptible-tasks",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "JavaScript library for creating manageable, interruptible and cancelable async functions",
   "keywords": [
     "tasks",
