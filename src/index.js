@@ -56,6 +56,7 @@ export class TaskHasBeenInterruptedError extends Error {
 }
 
 const cancelMarker = Symbol('InterruptibleTaskMarker');
+const tasksStatuses = new Map();
 
 export const createTask = (
   generator,
@@ -66,24 +67,16 @@ export const createTask = (
   },
   connect = null
 ) => {
-  let currentStatus = taskStatuses.stopped;
+  tasksStatuses.set(params.name, taskStatuses.stopped);
 
   const setPending = () => {
-    currentStatus = taskStatuses.pending;
-    if (connect)
-      connect(
-        params.name,
-        taskStatuses.pending
-      );
+    tasksStatuses.set(params.name, taskStatuses.pending);
+    if (connect) connect(params.name, taskStatuses.pending);
   };
 
   const setStopped = () => {
-    currentStatus = taskStatuses.stopped;
-    if (connect)
-      connect(
-        params.name,
-        taskStatuses.stopped
-      );
+    tasksStatuses.set(params.name, taskStatuses.stopped);
+    if (connect) connect(params.name, taskStatuses.stopped);
   };
 
   let currentNext;
@@ -110,7 +103,10 @@ export const createTask = (
     forceCancel = false;
 
     const runPromise = new Promise(async (resolve, reject) => {
-      if (currentStatus === taskStatuses.pending && !params.interruptible) {
+      if (
+        tasksStatuses.get(params.name) === taskStatuses.pending &&
+        !params.interruptible
+      ) {
         reject(
           new NotInterruptibleError(
             `Task ${params.name} is being executed already`
