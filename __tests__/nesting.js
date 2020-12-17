@@ -8,21 +8,21 @@ test('nested task returns value', async () => {
   const finalValue = 123;
 
   const thirdLevelTask = createTask(
-    function*() {
-      yield new Promise(resolve => setTimeout(() => resolve(finalValue), 0));
+    function* () {
+      yield new Promise((resolve) => setTimeout(() => resolve(finalValue), 0));
     },
     { interruptible: false, cancelable: false, name: 'thirdLevelTask' }
   );
 
   const secondLevelTask = createTask(
-    function*() {
+    function* () {
       yield thirdLevelTask.run();
     },
     { interruptible: false, cancelable: false, name: 'secondLevelTask' }
   );
 
   const firstLevelTask = createTask(
-    function*() {
+    function* () {
       yield secondLevelTask.run();
     },
     { interruptible: false, cancelable: false, name: 'firstLevelTask' }
@@ -37,21 +37,21 @@ test('nested task handles exception', async () => {
   const value = 'some error';
 
   const thirdLevelTask = createTask(
-    function*() {
+    function* () {
       throw new Error(value);
     },
     { interruptible: false, cancelable: false, name: 'thirdLevelTask' }
   );
 
   const secondLevelTask = createTask(
-    function*() {
+    function* () {
       yield thirdLevelTask.run();
     },
     { interruptible: false, cancelable: false, name: 'secondLevelTask' }
   );
 
   const firstLevelTask = createTask(
-    function*() {
+    function* () {
       yield secondLevelTask.run();
     },
     { interruptible: false, cancelable: false, name: 'firstLevelTask' }

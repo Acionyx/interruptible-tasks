@@ -3,15 +3,15 @@
 import {
   createTask,
   NotInterruptibleError,
-  TaskHasBeenInterruptedError
+  TaskHasBeenInterruptedError,
 } from '../src';
 
 test('task non interruptibility', async () => {
   expect.assertions(2);
 
   const nonCancelableTask = createTask(
-    function*() {
-      yield new Promise(resolve => setTimeout(resolve, 10));
+    function* () {
+      yield new Promise((resolve) => setTimeout(resolve, 10));
     },
     { interruptible: false, cancelable: false, name: 'nonCancelableTask' }
   );
@@ -24,8 +24,8 @@ test('task non interruptibility', async () => {
   );
 
   const cancelableTask = createTask(
-    function*() {
-      yield new Promise(resolve => setTimeout(resolve, 10));
+    function* () {
+      yield new Promise((resolve) => setTimeout(resolve, 10));
     },
     { interruptible: false, cancelable: true, name: 'cancelableTask' }
   );
@@ -40,14 +40,14 @@ test('task interruptibility', async () => {
   expect.assertions(4);
 
   const nonCancelableTask = createTask(
-    function*(data) {
-      yield new Promise(resolve => setTimeout(resolve, 10));
+    function* (data) {
+      yield new Promise((resolve) => setTimeout(resolve, 10));
       yield data;
     },
     { interruptible: true, cancelable: false, name: 'nonCancelableTask' }
   );
 
-  nonCancelableTask.run('not ok').catch(e => {
+  nonCancelableTask.run('not ok').catch((e) => {
     expect(e).toEqual(
       new TaskHasBeenInterruptedError(
         'Task nonCancelableTask has been interrupted'
@@ -57,14 +57,14 @@ test('task interruptibility', async () => {
   await expect(nonCancelableTask.run('ok')).resolves.toEqual('ok');
 
   const cancelableTask = createTask(
-    function*(data) {
-      yield new Promise(resolve => setTimeout(resolve, 10));
+    function* (data) {
+      yield new Promise((resolve) => setTimeout(resolve, 10));
       yield data;
     },
     { interruptible: true, cancelable: true, name: 'cancelableTask' }
   );
 
-  cancelableTask.run('not ok').catch(e => {
+  cancelableTask.run('not ok').catch((e) => {
     expect(e).toEqual(
       new TaskHasBeenInterruptedError(
         'Task cancelableTask has been interrupted'

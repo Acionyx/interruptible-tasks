@@ -13,8 +13,8 @@ test('task status connectivity', async () => {
   };
 
   const task = createTask(
-    function*() {
-      yield new Promise(resolve => setTimeout(resolve, 10));
+    function* () {
+      yield new Promise((resolve) => setTimeout(resolve, 10));
     },
     { interruptible: false, cancelable: false, name: taskName },
     connect

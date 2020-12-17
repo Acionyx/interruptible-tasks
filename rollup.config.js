@@ -5,8 +5,8 @@ import babel from 'rollup-plugin-babel';
 const output = [
   {
     file: pkg.main.replace('.es5.', `.${process.env.BABEL_ENV}.`),
-    format: 'cjs'
-  }
+    format: 'cjs',
+  },
 ];
 
 if (process.env.BABEL_ENV === 'es5') {
@@ -14,13 +14,13 @@ if (process.env.BABEL_ENV === 'es5') {
     ...[
       {
         file: pkg.module,
-        format: 'es' // the preferred format
+        format: 'es', // the preferred format
       },
       {
         file: pkg.browser,
         format: 'iife',
-        name: 'InterruptibleTasks' // the global which can be used in a browser
-      }
+        name: 'InterruptibleTasks', // the global which can be used in a browser
+      },
     ]
   );
 }
@@ -31,8 +31,8 @@ export default {
   external: [...Object.keys(pkg.dependencies || {})],
   plugins: [
     babel({
-      exclude: 'node_modules/**'
+      exclude: 'node_modules/**',
     }),
-    terser() // minifies generated bundles
-  ]
+    terser(), // minifies generated bundles
+  ],
 };

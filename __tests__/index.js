@@ -4,7 +4,7 @@ import {
   createTask,
   taskStatuses,
   NotCancelableError,
-  NotInterruptibleError
+  NotInterruptibleError,
 } from '../src';
 
 test('API exists', () => {
@@ -15,10 +15,10 @@ test('API exists', () => {
 });
 
 test('createTask execution', () => {
-  const task = createTask(function*() {}, {
+  const task = createTask(function* () {}, {
     interruptible: true,
     cancelable: true,
-    name: 'testTask'
+    name: 'testTask',
   });
   expect(typeof task).toBe('object');
   expect(typeof task.run).toBe('function');
@@ -30,7 +30,7 @@ test('task returns a value', async () => {
 
   const value = 'final value';
   const taskWithValue = createTask(
-    function*() {
+    function* () {
       yield value;
     },
     { interruptible: false, cancelable: false, name: 'taskWithValue' }
@@ -44,7 +44,7 @@ test('task handles exception', async () => {
 
   const value = 'some error';
   const taskWithValue = createTask(
-    function*() {
+    function* () {
       throw new Error(value);
     },
     { interruptible: false, cancelable: false, name: 'taskWithValue' }

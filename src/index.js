@@ -4,7 +4,7 @@ const debug = () => {};
 
 export const taskStatuses = Object.freeze({
   pending: Symbol('pending'),
-  stopped: Symbol('stopped')
+  stopped: Symbol('stopped'),
 });
 
 export class NotInterruptibleError extends Error {
@@ -63,7 +63,7 @@ export const createTask = (
   params = {
     interruptible: false,
     cancelable: true,
-    name: Symbol('Unnamed task')
+    name: Symbol('Unnamed task'),
   },
   connect = null
 ) => {
@@ -98,7 +98,7 @@ export const createTask = (
     return true;
   };
 
-  const run = function(...args) {
+  const run = function (...args) {
     debug(`RUN has been called for ${params.name}`);
     forceCancel = false;
 
@@ -193,7 +193,7 @@ export const createTask = (
       enumerable: false,
       configurable: false,
       writable: false,
-      value: cancel
+      value: cancel,
     });
 
     return runPromise;
@@ -202,6 +202,6 @@ export const createTask = (
   debug(`Task has been created with name ${params.name}`);
   return {
     run,
-    cancel
+    cancel,
   };
 };

@@ -6,27 +6,27 @@ test('nested task returns value and interrupts correctly', async () => {
   expect.assertions(2);
 
   const thirdLevelTask = createTask(
-    function*(value) {
-      yield new Promise(resolve => setTimeout(() => resolve(value), 10));
+    function* (value) {
+      yield new Promise((resolve) => setTimeout(() => resolve(value), 10));
     },
     { interruptible: true, cancelable: false, name: 'thirdLevelTask' }
   );
 
   const secondLevelTask = createTask(
-    function*(value) {
+    function* (value) {
       yield thirdLevelTask.run(value);
     },
     { interruptible: true, cancelable: false, name: 'secondLevelTask' }
   );
 
   const firstLevelTask = createTask(
-    function*(value) {
+    function* (value) {
       yield secondLevelTask.run(value);
     },
     { interruptible: true, cancelable: false, name: 'firstLevelTask' }
   );
 
-  firstLevelTask.run().catch(e => {
+  firstLevelTask.run().catch((e) => {
     expect(e).toEqual(
       new TaskHasBeenInterruptedError(
         'Task firstLevelTask has been interrupted'
@@ -42,23 +42,23 @@ test('nested task interrupts correctly with inner catch', async () => {
   expect.assertions(2);
 
   const thirdLevelTask = createTask(
-    function*(value) {
-      yield new Promise(resolve => setTimeout(() => resolve(value), 10));
+    function* (value) {
+      yield new Promise((resolve) => setTimeout(() => resolve(value), 10));
     },
     { interruptible: true, cancelable: false, name: 'thirdLevelTask' }
   );
 
   const secondLevelTask = createTask(
-    function*(value) {
-      yield new Promise(resolve => setTimeout(resolve, 10));
+    function* (value) {
+      yield new Promise((resolve) => setTimeout(resolve, 10));
       yield thirdLevelTask.run(value);
     },
     { interruptible: true, cancelable: false, name: 'secondLevelTask' }
   );
 
   const firstLevelTask = createTask(
-    function*(value) {
-      yield secondLevelTask.run(value).catch(e => {
+    function* (value) {
+      yield secondLevelTask.run(value).catch((e) => {
         expect(e).toEqual(
           new TaskHasBeenInterruptedError(
             'Task secondLevelTask has been interrupted'
@@ -80,22 +80,22 @@ test('nested task interrupts correctly without inner catch', async () => {
   expect.assertions(1);
 
   const thirdLevelTask = createTask(
-    function*(value) {
-      yield new Promise(resolve => setTimeout(() => resolve(value), 10));
+    function* (value) {
+      yield new Promise((resolve) => setTimeout(() => resolve(value), 10));
     },
     { interruptible: true, cancelable: false, name: 'thirdLevelTask' }
   );
 
   const secondLevelTask = createTask(
-    function*(value) {
-      yield new Promise(resolve => setTimeout(resolve, 10));
+    function* (value) {
+      yield new Promise((resolve) => setTimeout(resolve, 10));
       yield thirdLevelTask.run(value);
     },
     { interruptible: true, cancelable: false, name: 'secondLevelTask' }
   );
 
   const firstLevelTask = createTask(
-    function*(value) {
+    function* (value) {
       yield secondLevelTask.run(value);
       yield value;
     },
@@ -103,7 +103,7 @@ test('nested task interrupts correctly without inner catch', async () => {
   );
 
   const value = 'value';
-  firstLevelTask.run(value).catch(e => {
+  firstLevelTask.run(value).catch((e) => {
     expect(e).toEqual(
       new TaskHasBeenInterruptedError(
         'Task secondLevelTask has been interrupted'
